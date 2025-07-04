@@ -1,0 +1,5 @@
+parameters:
+  openshift4_compliance:
+    =_metadata:
+      multi_tenant: true
+    namespace: syn-openshift4-compliance
