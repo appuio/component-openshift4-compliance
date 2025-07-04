@@ -1,0 +1,13 @@
+apiVersion: compliance.openshift.io/v1alpha1
+kind: TailoredProfile
+metadata:
+  name: my-profile
+  namespace: openshift-compliance
+spec:
+  description: A tailored profile, extending the upstream ocp4-cis profile.
+  disableRules:
+    - name: ocp4-audit-profile-set
+      rationale: |
+        `Default` audit log profile is good enough. We do not want the possible impact on cluster availability of `WriteRequestBodies`.
+  extends: ocp4-cis
+  title: tailored ocp4-cis profile

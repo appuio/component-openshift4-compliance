@@ -2,6 +2,7 @@
 
 The parent key for all of the following parameters is `openshift4_compliance`.
 
+
 == `namespace`
 
 [horizontal]
@@ -11,9 +12,147 @@ default:: `syn-openshift4-compliance`
 The namespace in which to deploy this component.
 
 
+== `channel`
+
+[horizontal]
+type:: string
+default:: `stable`
+
+Channel of the operator subscription to use.
+
+
+== `scanSettings`
+
+[horizontal]
+type:: dictionary
+default::
++
+[source,yaml]
+----
+scanSettings:
+  default:
+    schedule: 0 1 * * *
+    maxRetryOnTimeout: 3
+    rawResultStorage:
+      pvAccessModes:
+        - ReadWriteOnce
+      rotation: 3
+      size: 1Gi
+    roles:
+      - worker
+      - master
+    scanTolerations:
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/master
+        operator: Exists
+    showNotApplicable: false
+    strictNodeScan: true
+    suspend: false
+    timeout: 30m
+----
+
+The default scan settings for the operator.
+
+
+== `scanSettingBindings`
+
+[horizontal]
+type:: dictionary
+default::
++
+[source,yaml]
+----
+scanSettingBindings:
+  daily-cis-scan:
+    profiles_:
+      ocp4-cis: {}
+      ocp4-cis-node: {}
+    settingsRef_: default
+----
+
+The default scan profile bindings for the operator.
+
+=== `scanSettingBindings.profiles_`
+
+[horizontal]
+type:: list
+
+The profiles to be used for the scan setting binding.
+The component supports removing entries in this parameter by providing the entry prefixed with ~.
+
+=== `scanSettingBindings.tailored_`
+
+[horizontal]
+type:: list
+
+The tailored profiles to be used for the scan setting binding.
+The component supports removing entries in this parameter by providing the entry prefixed with ~.
+
+=== `scanSettingBindings.settingsRef_`
+
+[horizontal]
+type:: string
+
+The scan setting to be used for the scan setting binding.
+
+
+== `tailoredProfiles`
+
+[horizontal]
+type:: dictionary
+default:: {}
+
+A dictionary holding the tailored profiles for the operator.
+
+
+== `alerts`
+
+=== `alerts.ignore`
+
+[horizontal]
+type:: list
+default:: []
+
+This parameter can be used to disable alerts provided by openshift compliance-operator.
+The component supports removing entries in this parameter by providing the entry prefixed with ~.
+
+=== `alerts.patch`
+
+[horizontal]
+type:: dictionary
+default:: {}
+
+The parameter `alerts.patch` allows users to customize upstream alerts.
+
+
+== `operatorResources.compliance`
+
+[horizontal]
+type:: dictionary
+default:: see `defaults.yml`
+
+A dictionary holding the `.spec.config.resources` for OLM subscriptions maintained by this component.
+
+
 == Example
 
 [source,yaml]
 ----
-namespace: example-namespace
+scanSettingBindings:
+  daily-cis-scan:
+    profiles_:
+      - ~ocp4-cis
+    tailored_:
+      - my-profile
+
+tailoredProfiles:
+  my-profile:
+    spec:
+      description: A tailored profile, extending the upstream ocp4-cis profile.
+      disableRules:
+        - name: ocp4-audit-profile-set
+          rationale: |
+            `Default` audit log profile is good enough. We do not want the possible impact on cluster availability of `WriteRequestBodies`.
+      extends: ocp4-cis
+      title: tailored ocp4-cis profile
 ----
