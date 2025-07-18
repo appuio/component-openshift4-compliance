@@ -1,3 +1,45 @@
-# Overwrite parameters here
+applications:
+  - espejote
+  - openshift4-operators as openshift-operators-redhat
+  - openshift4-monitoring
 
-# parameters: {...}
+parameters:
+  kapitan:
+    dependencies:
+      - type: https
+        source: https://raw.githubusercontent.com/projectsyn/component-espejote/master/lib/espejote.libsonnet
+        output_path: vendor/lib/espejote.libsonnet
+      - type: https
+        source: https://raw.githubusercontent.com/appuio/component-openshift4-operators/v1.0.2/lib/openshift4-operators.libsonnet
+        output_path: vendor/lib/openshift4-operators.libsonnet
+      - type: https
+        source: https://raw.githubusercontent.com/appuio/component-openshift4-monitoring/master/lib/openshift4-monitoring-operator-rules.libsonnet
+        output_path: vendor/lib/operator-rules.libsonnet
+
+  espejote:
+    namespace: syn-espejote
+
+  openshift4_operators:
+    defaultInstallPlanApproval: Automatic
+    defaultSource: openshift-operators-redhat
+    defaultSourceNamespace: openshift-operators-redhat
+
+  openshift4_compliance:
+    scanSettings:
+      default: null
+    scanSettingBindings:
+      daily-cis-scan:
+        profiles_:
+          - ~ocp4-cis
+        tailored_:
+          - my-profile
+    tailoredProfiles:
+      my-profile:
+        spec:
+          description: A tailored profile, extending the upstream ocp4-cis profile.
+          disableRules:
+            - name: ocp4-audit-profile-set
+              rationale: |
+                `Default` audit log profile is good enough. We do not want the possible impact on cluster availability of `WriteRequestBodies`.
+          extends: ocp4-cis
+          title: tailored ocp4-cis profile
